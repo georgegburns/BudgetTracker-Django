@@ -1,0 +1,466 @@
+{% extends 'BT_base.html' %}
+{% load crispy_forms_tags %}
+{% load NestEgg_Extras %}
+{% load static %}
+{% block title %}
+  <title> Input </title>
+{% endblock title %}
+{% block content %}
+<style>
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  .pagination > li > a
+  {
+      background-color: white;
+      color: #000000;
+  }
+
+  .pagination > li > a:focus,
+  .pagination > li > a:hover,
+  .pagination > li > span:focus,
+  .pagination > li > span:hover
+  {
+      color: #5a5a5a;
+      background-color: #eee;
+      border-color: #ddd;
+  }
+
+  .pagination > .active > a
+  {
+      color: white;
+      background-color: #000000;
+      border: solid 1px #000000;
+  }
+
+  .pagination > .active > a:hover
+  {
+      background-color: #000000;
+      border: solid 1px #000000;
+  }
+</style>
+  <div class="container">
+    </br>
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close pull-right" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+        {% if message.tags == 'error'%}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close pull-right" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    </br>
+    {% if all_inputs %}
+    <div class="accordion" id="accordionExample">
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingOne">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+            New Spend
+          </button>
+        </h2>
+        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+          <div class="accordion-body">
+            <form class="row align-items-center" autocomplete="off" method="POST" action="" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="row g-2">
+                <div class="col-lg-4">
+                  <input type="text" class="form-control" name="cost_centre" placeholder="Cost Centre">
+                </div>
+                <div class="col-lg-4">
+                  <input type="text" class="form-control" name="nominal" placeholder="Nominal">
+                </div>
+                <div class="col-lg-4">
+                  <input type="text" class="form-control" name="supplier" placeholder="Supplier">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-lg-4">
+                  <input type="date" class="form-control" name="date" placeholder="Date">
+                </div>
+                <div class="col-lg-4">
+                  <div class="input-group">
+                    <span class="input-group-text">£</span>
+                    <input type="text" class="form-control" name="spend" placeholder="Spend">
+                  </div>
+                </div>
+                <div class="col-lg-4">
+                  <input type="text" class="form-control" name="spend_type" placeholder="Spend Type">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-lg-12">
+                  <input type="textarea" class="form-control" name="description" placeholder="Description">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-lg-12">
+                  <div class="container text-center">
+                    <button type="submit" name="add" style="width:25%;height:50%" class="btn btn-primary" onclick="return confirm('Are you sure you want to add spend?')">Add Spend</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+        </div>
+      </div>
+    </div>
+    </br>
+    <nav aria-label="Page navigation example">
+      <ul class="pagination justify-content-end">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="{% my_url 1 'page' request.GET.urlencode %}"><<</a></li>
+          <li class="page-item"><a class="page-link" href="{% my_url page_obj.previous_page_number 'page' request.GET.urlencode %}">{{ page_obj.previous_page_number }}</a></li>
+        {% endif %}
+          <li class="page-item"><a class="page-link"> Page {{page_obj.number}} of {{page_obj.paginator.num_pages}}</a>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="{% my_url page_obj.next_page_number 'page' request.GET.urlencode %}">{{ page_obj.next_page_number }}</a></li>
+          <li class="page-item"><a class="page-link" href="{% my_url page_obj.paginator.num_pages 'page' request.GET.urlencode %}">>></a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    </br>
+      {% if page_obj %}
+      <div class="table-responsive">
+        <table id="table" class="table table-hover" >
+          <thead class="thead-dark">
+            <tr>
+              <th scope="col" nowrap style="text-align:center">Cost Centre</th>
+              <th scope="col" nowrap style="text-align:center";>Nominal</th>
+              <th scope="col" nowrap style="text-align:center">Supplier</th>
+              <th scope="col" nowrap style="text-align:center">Date</th>
+              <th scope="col" nowrap style="text-align:center">Spend</th>
+              <th scope="col" nowrap style="text-align:center">Type</th>
+              <th scope="col" nowrap style="text-align:center">Description</th>
+              <th scope="col" nowrap style="text-align:center"></th>
+            </tr>
+            <nav class="navbar navbar-expand-lg">
+              <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#tableeditContent" aria-controls="tableeditContent" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="tableeditContent">
+                  <div class="navbar-nav">
+                  </div>
+                </div>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                  <div class="col-8">
+                  </div>
+                  <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#filter">
+                    <a class="nav-item nav-link"><img src="{% static 'images\search.png' %}" style="width:30px;height:30px;"></a>
+                  </button>
+                  <button type="button" class="btn btn-light">
+                    <a class="nav-item nav-link" role="button" aria-current="page" href="{% url 'Input' %}">Clear Filter</a>
+                  </button>
+                  <div class="btn-group dropstart">
+                    <button type="button" class="btn btn-light" data-bs-toggle="dropdown" aria-expanded="false">
+                      <a class="nav-item nav-link"><img src="{% static 'images\vertical-ellipsis.png' %}" style="width:30px;height:30px;"></a>
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#upload" style="width:auto;height:auto;">Upload Spends</button></li>
+                      <li><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#download" style="width:auto;height:auto;">Download Spends</button></li>
+                      <li><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#delete_all" style="width:auto;height:auto;">Delete All Spends</button></li>
+                  </div>
+                </div>
+              </div>
+            </nav>
+          </thead>
+          <tbody>
+          {% for obj in page_obj %}
+            <tr>
+              <td data-id="{{ obj.id }}" data-type="cost_centre" nowrap style="text-align:center">{{ obj.cost_centre }}</td>
+              <td data-id="{{ obj.id }}" data-type="nominal" nowrap style="text-align:center">{{ obj.nominal }}</td>
+              <td data-id="{{ obj.id }}" data-type="supplier" nowrap style="text-align:center">{{ obj.supplier }}</td>
+              <td data-id="{{ obj.id }}" data-type="date" nowrap style="text-align:center">{{ obj.date|date:'d M, Y' }}</td>
+              <td data-id="{{ obj.id }}" data-type="spend" nowrap style="text-align:center">£{{ obj.spend|floatformat:2 }}</td>
+              <td data-id="{{ obj.id }}" data-type="spend_type" nowrap style="text-align:center">{{ obj.spend_type }}</td>
+              <td data-id="{{ obj.id }}" data-type="description">{{ obj.description }}</td> 
+              <td>
+                <a href="{% url 'edit_input' obj.id %}">
+                  <button type="button" class="btn btn-light">
+                    <img src="{% static 'images/pencil.png' %}" alt='edit' width=25px height=25px>
+                  </button>
+                </a>
+              </td>
+              <td>
+                <a href="{% url 'delete_input' obj.id %}">
+                  <button type="button" class="btn btn-light" onclick="return confirm('Are you sure you want to delete?')">
+                    <img src="{% static 'images/delete.png' %}" alt='Delete' width=25px height=25px  onclick="return confirm('Are you sure you want to delete?')">
+                  </button>
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#tableeditContent" aria-controls="tableeditContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="tableeditContent">
+            <div class="navbar-nav">
+            </div>
+          </div>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="col-8">
+            </div>
+            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#filter">
+              <a class="nav-item nav-link"><img src="{% static 'images\search.png' %}" style="width:30px;height:30px;"></a>
+            </button>
+            <button type="button" class="btn btn-light">
+              <a class="nav-item nav-link" role="button" aria-current="page" href="{% url 'Input' %}">Clear Filter</a>
+            </button>
+            <div class="btn-group dropstart">
+              <button type="button" class="btn btn-light" data-bs-toggle="dropdown" aria-expanded="false">
+                <a class="nav-item nav-link"><img src="{% static 'images\vertical-ellipsis.png' %}" style="width:30px;height:30px;"></a>
+              </button>
+              <ul class="dropdown-menu">
+                <li><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#upload" style="width:auto;height:auto;">Upload Spends</button></li>
+                <li><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#download" style="width:auto;height:auto;">Download Spends</button></li>
+                <li><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#delete_all" style="width:auto;height:auto;">Delete All Spends</button></li>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div class="container  text-center mt-5">
+        <h1>No Spends Matching Criteria</h1>
+      </div>
+      {% endif %}
+    {% else %}
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#tableeditContent" aria-controls="tableeditContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="tableeditContent">
+          <div class="navbar-nav">
+            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#add_spend">
+              <a class="nav-item nav-link"><img src="{% static 'images\icons8-plus-30.png' %}" style="width:30px;height:30px;"></a>
+            </button>
+            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#upload" style="width:auto;height:auto;">
+              Upload Spends
+            </button
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="container  text-center mt-5">
+      <h1>No Spends Input</h1>
+    </div>
+    {% endif %}
+    <div class="modal fade" id="add_spend" tabindex="-1" aria-labelledby="add_spendLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="add_spendModalLabel">Add Spend</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form class="row align-items-center" method="POST" action="" autocomplete="off" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="row g-2">
+                <div class="col-lg-4">
+                  <input type="text" list="cost_centres" class="form-control" name="cost_centre" placeholder="Cost Centre">
+                  <datalist id="cost_centres">
+                    {% for cc in cc_choices %}
+                    <option value="{{ cc }}">
+                    {% endfor %}
+                </div>
+                <div class="col-lg-4">
+                  <input type="text" list="noms" class="form-control" name="nominal" placeholder="Nominal">
+                  <datalist id="noms">
+                    {% for nom in nom_choices %}
+                    <option value="{{ nom }}">
+                    {% endfor %}
+                </div>
+                <div class="col-lg-4">
+                  <input type="text" list="sups" class="form-control" name="supplier" placeholder="Supplier">
+                  <datalist id="sups">
+                    {% for sup in sup_choices %}
+                    <option value="{{ sup }}">
+                    {% endfor %}
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-lg-4">
+                  <input type="date" class="form-control" name="date" placeholder="Date">
+                </div>
+                <div class="col-lg-4">
+                  <div class="input-group">
+                    <span class="input-group-text">£</span>
+                    <input type="text" class="form-control" name="spend" placeholder="Spend">
+                  </div>
+                </div>
+                <div class="col-lg-4">
+                  <input type="text" list="sts" class="form-control" name="spend_type" placeholder="Spend Type">
+                  <datalist id="sts">
+                    {% for type in spendtype_choices %}
+                    <option value="{{ type }}">
+                    {% endfor %}
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-lg-12">
+                  <input type="textarea" class="form-control" name="description" placeholder="Description">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-lg-12">
+                  <div class="container text-center">
+                    <button type="submit" name="add" style="width:100%;height:100%" class="btn btn-primary" onclick="return confirm('Are you sure you want to add spend?')">Add Spend</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="delete_all" tabindex="-1" aria-labelledby="delete_allLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="delete_allModalLabel">Delete All Spends</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form class="row align-items-center" method="GET" action="" enctype="multipart/form-data">
+              <p class="lead">Are you sure want to delete all spends? This can't be undone.</p>
+              <div class="row g-2">
+                <div class="col-lg-12">
+                  <div class="container text-center">
+                    <button type="submit" name="delete_all" style="width:100%;height:100%" class="btn btn-primary">Delete All</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="download" tabindex="-1" aria-labelledby="downloadlLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="downloadModalLabel">Download Spends</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form class="row align-items-center" method="GET" action="" enctype="multipart/form-data">
+              <div class="row g-2">
+                <div class="col-lg-12">
+                  <div class="container text-center">
+                    <button type="submit" name="download" style="width:100%;height:100%" data-bs-dismiss="modal" class="btn btn-primary">Download</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="upload" tabindex="-1" aria-labelledby="uploadLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="uploadModalLabel">Upload Spends</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form class="row align-items-center" method="POST" action="" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="container text-center m-2">
+                  {{ Upload.file_name|as_crispy_field}} 
+              </div>
+              <div class="container text-center m-2">
+                <button type="submit" name="upload" class="btn btn-primary" style="width:auto;height:auto" onclick="return confirm('Are you sure you want to upload spends?')">Upload Spends</button>
+              </div>
+            </form>
+            </br>
+              <div class="container text-center">
+                <p class="lead">Please ensure it is a CSV file in the below template</p>
+                <img src="{% static 'images/ExampleCSV.png' %}" alt='Example CSV'>
+              </div>
+              <form class="row align-items-center" method="GET" action="" enctype="multipart/form-data">
+                <div class="container text-center m-2">
+                  <button type="submit" name="template" class="btn btn-primary" style="width:auto;height:auto">Download Template</button>
+                </div>
+            </form>
+              </br>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="filter" tabindex="-1" aria-labelledby="filterLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="filtertitleModalLabel">Filter</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form class="row align-items-center" autocomplete="off" method="GET" action="" enctype="multipart/form-data">
+              <div class="row g-2">
+                <div class="col-lg-4">
+                  {{ filter.form.cost_centre__cost_centre|as_crispy_field}}
+                </div>
+                <div class="col-lg-4">
+                  {{ filter.form.nominal__nominal|as_crispy_field}}
+                </div>
+                <div class="col-lg-4">
+                  {{ filter.form.supplier__supplier|as_crispy_field}}
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-lg-6">
+                  {{ filter.form.start_date_filter|as_crispy_field}}
+                </div>
+                <div class="col-lg-6">
+                  {{ filter.form.end_date_filter|as_crispy_field}}
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-lg-4">
+                  <div class="input-group">
+                    {{ filter.form.from_spend_filter|as_crispy_field}}
+                  </div>
+                </div>
+                <div class="col-lg-4">
+                  <div class="input-group">
+                    {{ filter.form.to_spend_filter|as_crispy_field}}
+                  </div>
+                </div>
+                <div class="col-lg-4">
+                  {{ filter.form.spend_type__spend_type|as_crispy_field}}
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-lg-12">
+                  {{ filter.form.description_filter|as_crispy_field}}
+                </div>
+              </div>
+              <div class="container center-text">
+                <div class="col-lg-12 mt-2">
+                  <button type="submit" style="width:100%;height:100%" class="btn btn-primary" >Filter</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block scripts %}
+{% endblock scripts %}

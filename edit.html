@@ -1,0 +1,88 @@
+{% extends 'BT_base.html' %}
+{% load static%}
+{% block title %}
+  <title> Input </title>
+{% endblock title %}
+
+{% block content %}
+    <div class="container">
+    </br>
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close pull-right" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+            {% if message.tags == 'error'%}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close pull-right" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    <a type="button" class="btn btn-light" href="{% url 'Input' %}">
+      <img src="{% static 'images/left.png' %}" alt='Back' width=25px height=25px>
+    </a>
+  </br>
+    {% if input_obj.owner == request.user %}
+      <div class="accordion" id="accordionExample">
+          <div class="accordion-item">
+              <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                  Edit Spend
+                </button>
+              </h2>
+              <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+              <div class="accordion-body">
+                  <form method="POST" action="" enctype="multipart/form-data">
+                  {% csrf_token %}
+                      <div class="row">
+                          <div class="col">
+                          <input type="text" class="form-control" name="cost_centre" placeholder="{{ input_obj.cost_centre}}" value="{{ input_obj.cost_centre}}">
+                          </div>
+                          <div class="col">
+                          <input type="text" class="form-control" name="nominal" placeholder="{{ input_obj.nominal }}" value="{{ input_obj.nominal}}">
+                          </div>
+                          <div class="col">
+                          <input type="text" class="form-control" name="supplier" placeholder="{{ input_obj.supplier}} "value="{{ input_obj.supplier }}">
+                          </div>
+                      </div>
+                      </br>
+                      <div class="row">
+                          <div class="col">
+                          <input type="date" class="form-control" name="date" placeholder={{ input_obj.date|date:'Y-m-d' }} value={{ input_obj.date|date:'Y-m-d' }}>
+                          </div>
+                          <div class="col">
+                          <div class="input-group mb-3">
+                              <span class="input-group-text">£</span>
+                              <input type="text" class="form-control" name="spend" placeholder={{ input_obj.spend|floatformat:2 }} value={{ input_obj.spend|floatformat:2 }}>
+                          </div>
+                          </div>
+                          <div class="col">
+                          <input type="text" class="form-control" name="spend_type" placeholder="{{ input_obj.spend_type }}" value="{{ input_obj.spend_type}}">
+                          </div>
+                      </div>
+                      <div class="row">
+                          <div class="col-lg-10">
+                          <input type="textarea" class="form-control" name="description" value="{{input_obj.description}}">
+                          </div>
+                          <div class="col-lg-2">
+                          <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to edit spend?')">Edit Spend</button>
+                          </div>
+                      </div>
+                  </form>
+              </div>
+              </div>
+          </div>
+      </br>
+      </div>
+        {% else %}
+        <div class="container  text-center mt-5">
+          <h1>Access Denied</h1>
+        </div>
+        {% endif%}
+      </div>
+{% endblock content %}
